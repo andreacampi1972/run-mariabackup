@@ -23,6 +23,15 @@ FULLBACKUPCYCLE=604800 # Create a new full backup every X seconds
 KEEP=3  # Number of additional backups cycles a backup should be kept for.
 LOCKDIR=/tmp/mariabackup.lock
 
+
+while getopts b: flag
+do
+    case "${flag}" in
+        b) backuptype=${OPTARG};;
+        h) echo $(basename $0) -b full|incremental ;;
+    esac
+done
+
 ReleaseLockAndExitWithCode () {
   if rmdir $LOCKDIR
   then
@@ -107,8 +116,17 @@ LATEST=`find $BASEBACKDIR -mindepth 1 -maxdepth 1 -type d -printf "%P\n" | sort 
 
 AGE=`stat -c %Y $BASEBACKDIR/$LATEST/backup.stream.gz`
 
-if [ "$LATEST" -a `expr $AGE + $FULLBACKUPCYCLE + 5` -ge $START ]
+
+if backuptype == "full"
 then
+  echo 'New full backup'
+
+  TARGETDIR=$BASEBACKDIR/`date +%F_%H-%M-%S`
+  mkdir -p $TARGETDIR
+
+  # Create a new full backup
+  $BACKCMD --backup $USEROPTIONS $ARGS --extra-lsndir=$TARGETDIR --stream=$STREAMCMD | $GZIPCMD > $TARGETDIR/backup.stream.gz
+else
   echo 'New incremental backup'
   # Create an incremental backup
 
@@ -141,15 +159,9 @@ then
 
   # Create incremental Backup
   $BACKCMD --backup $USEROPTIONS $ARGS --extra-lsndir=$TARGETDIR --incremental-basedir=$INCRBASEDIR --stream=$STREAMCMD | $GZIPCMD > $TARGETDIR/backup.stream.gz
-else
-  echo 'New full backup'
-
-  TARGETDIR=$BASEBACKDIR/`date +%F_%H-%M-%S`
-  mkdir -p $TARGETDIR
-
-  # Create a new full backup
-  $BACKCMD --backup $USEROPTIONS $ARGS --extra-lsndir=$TARGETDIR --stream=$STREAMCMD | $GZIPCMD > $TARGETDIR/backup.stream.gz
 fi
+
+# Retention
 
 MINS=$(($FULLBACKUPCYCLE * ($KEEP + 1 ) / 60))
 echo "Cleaning up old backups (older than $MINS minutes) and temporary files"
