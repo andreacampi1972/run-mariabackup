@@ -1,8 +1,11 @@
 # README
 
+
+
+
 *forked from [jmfederico/run-xtrabackup.sh](https://gist.github.com/jmfederico/1495347)*
 
-Note: have tested on Ubuntu 18.04 with MariaDB 10.3
+
 
 ## Links
 
@@ -13,8 +16,11 @@ Note: have tested on Ubuntu 18.04 with MariaDB 10.3
 ---
 
 ## Install mariabackup
-
+```
     sudo apt install mariadb-backup
+
+    yum install mariadb-backup
+```
 
 ## Create a backup user
 
@@ -29,13 +35,18 @@ FLUSH PRIVILEGES;
 ```
 
 ## Usage
-
-    MYSQL_PASSWORD=YourPassword bash run-mariabackup.sh
-
+    Full backup
+    MYSQL_PASSWORD=YourPassword bash run-mariabackup.sh -b full
+    incremental backup
+    run-mariabackup.sh -b incremental
+    
 ## Crontab
 
     #MySQL Backup
-    30 2 * * * MYSQL_PASSWORD=YourPassword bash /data/script/run-mariabackup.sh > /data/script/logs/run-mariabackup.sh.out 2>&1
+    
+    0 0 * * *  /root/run-mariabackup/run-mariabackup.sh -b full 2>&1 | tee  /nfs_share/`date +%F_%H-%M-%S`-full.log >> /dev/null
+    30 0 * * *  /root/run-mariabackup/run-mariabackup.sh -b incremental 2>&1 | tee  /nfs_share/`date +%F_%H-%M-%S`-incremental.log >> /dev/null
+
 
 ---
 
