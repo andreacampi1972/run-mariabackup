@@ -18,19 +18,28 @@ MYSQL_PORT=3306
 BACKCMD=mariabackup # Galera Cluster uses mariabackup instead of xtrabackup.
 GZIPCMD=gzip  # pigz (a parallel implementation of gzip) could be used if available.
 STREAMCMD=xbstream # sometimes named mbstream to avoid clash with Percona command
-BACKDIR=/data/mysql_backup
+BACKDIR=/nfs_share/
 FULLBACKUPCYCLE=604800 # Create a new full backup every X seconds
 KEEP=3  # Number of additional backups cycles a backup should be kept for.
 LOCKDIR=/tmp/mariabackup.lock
+BASENAME=`basename $0`
+USAGE="Usage: $BASENAME -b  \"full|incremental\" "
 
-
-while getopts b: flag
+while getopts :b:h flag
 do
     case "${flag}" in
         b) backuptype=${OPTARG};;
-        h) echo $(basename $0) -b full|incremental ;;
+        h) echo $USAGE 
+           exit 1;;
     esac
 done
+
+if [ -z "${backuptype}"  ] || ( [ "incremental" != "${backuptype}" ] && [ "full" != "${backuptype}" ] ) ;
+then 
+	echo $USAGE
+	exit 1
+	
+fi
 
 ReleaseLockAndExitWithCode () {
   if rmdir $LOCKDIR
@@ -117,7 +126,7 @@ LATEST=`find $BASEBACKDIR -mindepth 1 -maxdepth 1 -type d -printf "%P\n" | sort 
 AGE=`stat -c %Y $BASEBACKDIR/$LATEST/backup.stream.gz`
 
 
-if backuptype == "full"
+if [[ $backuptype == "full" ]]
 then
   echo 'New full backup'
 
