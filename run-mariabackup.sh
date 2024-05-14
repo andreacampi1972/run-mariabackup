@@ -138,7 +138,11 @@ then
 else
   echo 'New incremental backup'
   # Create an incremental backup
-
+  # Test if exist full backup
+  if test ! -d $BASEBACKDIR/$LATEST
+  then
+    echo $BASEBACKDIR/$LATEST 'does not exist you do not have Full Backup'
+  fi
   # Check incr sub dir exists
   # try to create if not
   if test ! -d $INCRBACKDIR/$LATEST
