@@ -11,7 +11,7 @@
 # Usage:
 # MYSQL_PASSWORD=YourPassword bash run-mariabackup.sh
 
-MYSQL_USER=backup
+MYSQL_USER=root
 #MYSQL_PASSWORD=YourPassword
 MYSQL_HOST=localhost
 MYSQL_PORT=3306
@@ -123,7 +123,6 @@ echo "Check completed OK"
 # Find latest backup directory
 LATEST=`find $BASEBACKDIR -mindepth 1 -maxdepth 1 -type d -printf "%P\n" | sort -nr | head -1`
 
-AGE=`stat -c %Y $BASEBACKDIR/$LATEST/backup.stream.gz`
 
 
 if [[ $backuptype == "full" ]]
@@ -139,9 +138,10 @@ else
   echo 'New incremental backup'
   # Create an incremental backup
   # Test if exist full backup
-  if test ! -d $BASEBACKDIR/$LATEST
+  if  [ $BASEBACKDIR/$LATEST =  $BASEBACKDIR/ ]
   then
-    echo $BASEBACKDIR/$LATEST 'does not exist you do not have Full Backup'
+    echo 'You do not have Full Backup'
+    exit 1
   fi
   # Check incr sub dir exists
   # try to create if not
