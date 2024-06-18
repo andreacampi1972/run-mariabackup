@@ -43,10 +43,8 @@ FLUSH PRIVILEGES;
 ## Crontab
 
     #MySQL Backup
-    
-    0 0 * * *  /root/run-mariabackup/run-mariabackup.sh -b full 2>&1 | tee  /nfs_share/`date +%F_%H-%M-%S`-full.log >> /dev/null
-    30 0 * * *  /root/run-mariabackup/run-mariabackup.sh -b incremental 2>&1 | tee  /nfs_share/`date +%F_%H-%M-%S`-incremental.log >> /dev/null
-
+    0 0 * * *  /root/run-mariabackup/run-mariabackup.sh -b full 2>&1 | /usr/bin/tee  /nfs_share/`date +\%F_\%H-\%M-\%S`-full.log >> /dev/null
+    30 0 * * *  /root/run-mariabackup/run-mariabackup.sh -b incremental 2>&1 | /usr/bin/tee  /nfs_share/`date +\%F_\%H-\%M-\%S`-incremental.log >> /dev/null
 
 ---
 
